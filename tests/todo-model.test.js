@@ -27,6 +27,7 @@ class MockStorage {
   }
 }
 
+//tests for adding todos
 test('TodoModel - addTodo should add a new todo', () => {
   const storage = new MockStorage();
   const model = new TodoModel(storage);
@@ -94,6 +95,7 @@ test('should not throw error for non-existent ID', () => {
     });
 });
 
+//deleting elements
 test('should delete a todo', () => {
     const storage = new MockStorage();
     const model = new TodoModel(storage);
@@ -120,4 +122,59 @@ test('should delete correct todo from multiple', () => {
     assert.strictEqual(model.todos[1].text, 'Third');
 });
 
+//updating todos
+test('should update todo text', () => {
+    const storage = new MockStorage();
+    const model = new TodoModel(storage);
 
+    model.addTodo('Old text');
+    const id = model.todos[0].id;
+
+    model.updateTodo(id, 'New text');
+    assert.strictEqual(model.todos[0].text, 'New text');
+});
+
+test('should not update with empty text', () => {
+    const storage = new MockStorage();
+    const model = new TodoModel(storage);
+
+    model.addTodo('Original');
+    const id = model.todos[0].id;
+
+    model.updateTodo(id, '');
+    assert.strictEqual(model.todos[0].text, 'Original');
+});
+
+//to do count
+test('should calculate active count correctly', () => {
+    const storage = new MockStorage();
+    const model = new TodoModel(storage);
+
+    model.addTodo('Active 1');
+    model.addTodo('Active 2');
+    model.addTodo('Completed');
+    model.toggleComplete(model.todos[2].id);
+
+    assert.strictEqual(model.activeCount, 2);
+});
+
+test('should calculate completed count correctly', () => {
+    const storage = new MockStorage();
+    const model = new TodoModel(storage);
+
+    model.addTodo('Task 1');
+    model.addTodo('Task 2');
+    model.addTodo('Task 3');
+    model.toggleComplete(model.todos[0].id);
+    model.toggleComplete(model.todos[2].id);
+
+    assert.strictEqual(model.completedCount, 2);
+});
+
+test('should have zero counts for empty list', () => {
+    const storage = new MockStorage();
+    const model = new TodoModel(storage);
+
+    assert.strictEqual(model.activeCount, 0);
+    assert.strictEqual(model.completedCount, 0);
+});
