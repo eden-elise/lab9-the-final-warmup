@@ -48,6 +48,27 @@ test('TodoModel - should not add empty todos', () => {
   assert.strictEqual(model.todos.length, 0);
 });
 
-/* so few tests! I guess you can say you have testing, but it isn't meaningful.
-   Also where are our end to end tests!?! */
+test('should add multiple todos', () => {
+    const storage = new MockStorage();
+    const model = new TodoModel(storage);
+
+    model.addTodo('First todo');
+    model.addTodo('Second todo');
+    model.addTodo('Third todo');
+
+    assert.strictEqual(model.todos.length, 3);
+    assert.strictEqual(model.todos[0].text, 'First todo');
+    assert.strictEqual(model.todos[2].text, 'Third todo');
+});
+
+test('should assign unique IDs to todos', () => {
+    const storage = new MockStorage();
+    const model = new TodoModel(storage);
+
+    model.addTodo('First');
+    model.addTodo('Second');
+
+    assert.notStrictEqual(model.todos[0].id, model.todos[1].id);
+});
+
 
