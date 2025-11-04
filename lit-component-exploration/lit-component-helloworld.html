@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vanilla vs Lit - Simple Comparison</title>
+    <script type="importmap">
+        {
+            "imports": {
+                "lit": "https://cdn.jsdelivr.net/npm/lit@3/+esm"
+            }
+        }
+    </script>
+</head>
+<body>
+<h1>Same Component, Two Ways</h1>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin: 40px;">
+    <div>
+        <h2>Vanilla</h2>
+        <simple-counter-vanilla></simple-counter-vanilla>
+    </div>
+
+    <div>
+        <h2>Lit</h2>
+        <simple-counter-lit></simple-counter-lit>
+    </div>
+</div>
+
+<script>
+    // VANILLA WEB COMPONENT
+    class SimpleCounterVanilla extends HTMLElement {
+        constructor() {
+            super();
+            this.attachShadow({ mode: 'open' });
+            this._count = 0;
+        }
+
+        connectedCallback() {
+            this.render();
+            this._attachListeners();
+        }
+
+        _attachListeners() {
+            this.shadowRoot.querySelector('button')
+                .addEventListener('click', () => {
+                    this._count++;
+                    this.render();
+                    this._attachListeners(); // Re-attach every time!
+                });
+        }
+
+        render() {
+            this.shadowRoot.innerHTML = `
+                <div>
+                    <p>Count: ${this._count}</p>
+                    <button>Click Me</button>
+                </div>
+            `;
+        }
+    }
+    customElements.define('simple-counter-vanilla', SimpleCounterVanilla);
+</script>
+
+<script type="module">
+    // LIT COMPONENT
+    import { LitElement, html } from 'lit';
+
+    class SimpleCounterLit extends LitElement {
+        static properties = {
+            count: { type: Number }
+        };
+
+        constructor() {
+            super();
+            this.count = 0;
+        }
+
+        render() {
+            return html`
+                <div>
+                    <p>Count: ${this.count}</p>
+                    <button @click=${() => this.count++}>Click Me</button>
+                </div>
+            `;
+        }
+    }
+    customElements.define('simple-counter-lit', SimpleCounterLit);
+</script>
+</body>
+</html>
