@@ -71,4 +71,53 @@ test('should assign unique IDs to todos', () => {
     assert.notStrictEqual(model.todos[0].id, model.todos[1].id);
 });
 
+test('should toggle todo completion', () => {
+    const storage = new MockStorage();
+    const model = new TodoModel(storage);
+
+    model.addTodo('Test todo');
+    const id = model.todos[0].id;
+
+    model.toggleComplete(id);
+    assert.strictEqual(model.todos[0].completed, true);
+
+    model.toggleComplete(id);
+    assert.strictEqual(model.todos[0].completed, false);
+});
+
+test('should not throw error for non-existent ID', () => {
+    const storage = new MockStorage();
+    const model = new TodoModel(storage);
+
+    assert.doesNotThrow(() => {
+        model.toggleComplete(99999);
+    });
+});
+
+test('should delete a todo', () => {
+    const storage = new MockStorage();
+    const model = new TodoModel(storage);
+
+    model.addTodo('To be deleted');
+    const id = model.todos[0].id;
+
+    model.deleteTodo(id);
+    assert.strictEqual(model.todos.length, 0);
+});
+
+test('should delete correct todo from multiple', () => {
+    const storage = new MockStorage();
+    const model = new TodoModel(storage);
+
+    model.addTodo('First');
+    model.addTodo('Second');
+    model.addTodo('Third');
+    const secondId = model.todos[1].id;
+
+    model.deleteTodo(secondId);
+    assert.strictEqual(model.todos.length, 2);
+    assert.strictEqual(model.todos[0].text, 'First');
+    assert.strictEqual(model.todos[1].text, 'Third');
+});
+
 
