@@ -178,3 +178,52 @@ test('should have zero counts for empty list', () => {
     assert.strictEqual(model.activeCount, 0);
     assert.strictEqual(model.completedCount, 0);
 });
+
+test('should clear only completed todos', () => {
+    const storage = new MockStorage();
+    const model = new TodoModel(storage);
+
+    model.addTodo('Active');
+    model.addTodo('Completed 1');
+    model.addTodo('Completed 2');
+    model.toggleComplete(model.todos[1].id);
+    model.toggleComplete(model.todos[2].id);
+
+    model.clearCompleted();
+    assert.strictEqual(model.todos.length, 1);
+    assert.strictEqual(model.todos[0].text, 'Active');
+});
+
+test('should clear all todos', () => {
+    const storage = new MockStorage();
+    const model = new TodoModel(storage);
+
+    model.addTodo('Task 1');
+    model.addTodo('Task 2');
+    model.addTodo('Task 3');
+
+    model.clearAll();
+    assert.strictEqual(model.todos.length, 0);
+});
+
+test('should save to storage when todo added', () => {
+    const storage = new MockStorage();
+    const model = new TodoModel(storage);
+
+    model.addTodo('Test');
+
+    const saved = storage.load('todos', []);
+    assert.strictEqual(saved.length, 1);
+    assert.strictEqual(saved[0].text, 'Test');
+});
+
+test('should load todos from storage', () => {
+    const storage = new MockStorage();
+    storage.save('todos', [
+        { id: 1, text: 'Saved todo', completed: false }
+    ]);
+
+    const model = new TodoModel(storage);
+    assert.strictEqual(model.todos.length, 1);
+    assert.strictEqual(model.todos[0].text, 'Saved todo');
+});
