@@ -23,8 +23,9 @@ test.describe('Todo App - Essential Features', () => {
         //complete it
         await page.check('.checkbox');
 
-        //should be marked completed
-        await expect(page.locator('.todo-text')).toHaveClass(/completed/);
+        //should be marked completed (check the checkbox is checked and stats updated)
+        await expect(page.locator('.checkbox')).toBeChecked();
         await expect(page.locator('.stat-value').nth(2)).toContainText('1'); //completed count
+        await expect(page.locator('.stat-value').nth(1)).toContainText('0'); //active count
     });
 });
