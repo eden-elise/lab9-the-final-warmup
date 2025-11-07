@@ -1,217 +1,155 @@
-import { LitElement, html, css } from 'lit';
+import { LitElement, html } from 'lit';
 
 /**
  * TodoItem - Individual todo item component
+ * @element todo-item
+ * @fires toggle-todo - fired when checkbox is toggled
+ * @fires delete-todo - fired when delete button is clicked
+ * @fires update-todo - fired when todo text is updated
  */
 export class TodoItem extends LitElement {
-  static properties = {
-    todo: { type: Object },
-    isEditing: { state: true },
-    editValue: { state: true }
-  };
+    static properties = {
+        todo: { type: Object },
+        isEditing: { state: true },
+        editValue: { state: true }
+    };
 
-  static styles = css`
-    :host {
-      display: block;
+    //no shadow dom so external styles can reach
+    createRenderRoot() {
+        return this;
     }
 
-    .todo-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 16px;
-      background: white;
-      border-radius: 8px;
-      margin-bottom: 8px;
-      transition: transform 0.2s, box-shadow 0.2s;
+    constructor() {
+        super();
+        this.isEditing = false;
+        this.editValue = '';
     }
 
-    .todo-item:hover {
-      transform: translateX(4px);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    /**
+     * handles toggling todo completion
+     * dispatches toggle-todo event with todo id
+     */
+    handleToggle() {
+        this.dispatchEvent(new CustomEvent('toggle-todo', {
+            detail: { id: this.todo.id },
+            bubbles: true,
+            composed: true
+        }));
     }
 
-    .checkbox {
-      width: 20px;
-      height: 20px;
-      cursor: pointer;
+    /**
+     * handles deleting a todo
+     * prompts for confirmation then dispatches delete-todo event
+     */
+    handleDelete() {
+        if (confirm('Delete this todo?')) {
+            this.dispatchEvent(new CustomEvent('delete-todo', {
+                detail: { id: this.todo.id },
+                bubbles: true,
+                composed: true
+            }));
+        }
     }
 
-    .todo-text {
-      flex: 1;
-      font-size: 16px;
-      color: #333;
-      word-break: break-word;
+    /**
+     * enters edit mode for this todo
+     */
+    handleEdit() {
+        this.isEditing = true;
+        this.editValue = this.todo.text;
     }
 
-    .todo-text.completed {
-      text-decoration: line-through;
-      color: #999;
+    /**
+     * saves the edited todo text
+     * dispatches update-todo event if text is valid
+     */
+    handleSave() {
+        if (this.editValue.trim()) {
+            this.dispatchEvent(new CustomEvent('update-todo', {
+                detail: { id: this.todo.id, text: this.editValue },
+                bubbles: true,
+                composed: true
+            }));
+            this.isEditing = false;
+        }
     }
 
-    .edit-input {
-      flex: 1;
-      padding: 8px;
-      font-size: 16px;
-      border: 2px solid #667eea;
-      border-radius: 4px;
-      outline: none;
+    /**
+     * cancels editing and reverts to display mode
+     */
+    handleCancel() {
+        this.isEditing = false;
+        this.editValue = '';
     }
 
-    .button-group {
-      display: flex;
-      gap: 8px;
+    /**
+     * handles keyboard shortcuts in edit mode
+     * @param {KeyboardEvent} e - keyboard event
+     */
+    handleKeyDown(e) {
+        if (e.key === 'Enter') {
+            this.handleSave();
+        } else if (e.key === 'Escape') {
+            this.handleCancel();
+        }
     }
 
-    button {
-      padding: 6px 12px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 14px;
-      transition: background 0.2s;
-    }
+    /**
+     * renders the component
+     * @returns {TemplateResult} lit html template
+     */
+    render() {
+        //render edit mode if editing
+        if (this.isEditing) {
+            return html`
+                <div class="todo-item">
+                    <input
+                            class="edit-input"
+                            type="text"
+                            .value=${this.editValue}
+                            @input=${(e) => this.editValue = e.target.value}
+                            @keydown=${this.handleKeyDown}
+                            autofocus
+                    />
+                    <div class="button-group">
+                        <button class="save-btn" @click=${this.handleSave}>Save</button>
+                        <button class="cancel-btn" @click=${this.handleCancel}>Cancel</button>
+                    </div>
+                </div>
+            `;
+        }
 
-    .edit-btn {
-      background: #4CAF50;
-      color: white;
-    }
-
-    .edit-btn:hover {
-      background: #45a049;
-    }
-
-    .delete-btn {
-      background: #f44336;
-      color: white;
-    }
-
-    .delete-btn:hover {
-      background: #da190b;
-    }
-
-    .save-btn {
-      background: #2196F3;
-      color: white;
-    }
-
-    .save-btn:hover {
-      background: #0b7dda;
-    }
-
-    .cancel-btn {
-      background: #757575;
-      color: white;
-    }
-
-    .cancel-btn:hover {
-      background: #616161;
-    }
-  `;
-
-  constructor() {
-    super();
-    this.isEditing = false;
-    this.editValue = '';
-  }
-
-  handleToggle() {
-    this.dispatchEvent(new CustomEvent('toggle-todo', {
-      detail: { id: this.todo.id },
-      bubbles: true,
-      composed: true
-    }));
-  }
-
-  handleDelete() {
-    if (confirm('Delete this todo?')) {
-      this.dispatchEvent(new CustomEvent('delete-todo', {
-        detail: { id: this.todo.id },
-        bubbles: true,
-        composed: true
-      }));
-    }
-  }
-
-  handleEdit() {
-    this.isEditing = true;
-    this.editValue = this.todo.text;
-  }
-
-  handleSave() {
-    if (this.editValue.trim()) {
-      this.dispatchEvent(new CustomEvent('update-todo', {
-        detail: { id: this.todo.id, text: this.editValue },
-        bubbles: true,
-        composed: true
-      }));
-      this.isEditing = false;
-    }
-  }
-
-  handleCancel() {
-    this.isEditing = false;
-    this.editValue = '';
-  }
-
-  handleKeyDown(e) {
-    if (e.key === 'Enter') {
-      this.handleSave();
-    } else if (e.key === 'Escape') {
-      this.handleCancel();
-    }
-  }
-
-  render() {
-    if (this.isEditing) {
-      return html`
-        <div class="todo-item">
-          <input
-            class="edit-input"
-            type="text"
-            .value=${this.editValue}
-            @input=${(e) => this.editValue = e.target.value}
-            @keydown=${this.handleKeyDown}
-            autofocus
-          />
-          <div class="button-group">
-            <button class="save-btn" @click=${this.handleSave}>Save</button>
-            <button class="cancel-btn" @click=${this.handleCancel}>Cancel</button>
-          </div>
-        </div>
-      `;
-    }
-
-    return html`
-      <div class="todo-item">
-        <input
-          type="checkbox"
-          class="checkbox"
-          .checked=${this.todo.completed}
-          @change=${this.handleToggle}
-          aria-label="Toggle todo"
-        />
-        <span class="todo-text ${this.todo.completed ? 'completed' : ''}">
+        //render normal display mode
+        return html`
+            <div class="todo-item">
+                <input
+                        type="checkbox"
+                        class="checkbox"
+                        .checked=${this.todo.completed}
+                        @change=${this.handleToggle}
+                        aria-label="Toggle todo"
+                />
+                <span class="todo-text ${this.todo.completed ? 'completed' : ''}">
           ${this.todo.text}
         </span>
-        <div class="button-group">
-          <button
-            class="edit-btn"
-            @click=${this.handleEdit}
-            ?disabled=${this.todo.completed}
-            aria-label="Edit todo">
-            Edit
-          </button>
-          <button
-            class="delete-btn"
-            @click=${this.handleDelete}
-            aria-label="Delete todo">
-            Delete
-          </button>
-        </div>
-      </div>
-    `;
-  }
+                <div class="button-group">
+                    <button
+                            class="edit-btn"
+                            @click=${this.handleEdit}
+                            ?disabled=${this.todo.completed}
+                            aria-label="Edit todo">
+                        Edit
+                    </button>
+                    <button
+                            class="delete-btn"
+                            @click=${this.handleDelete}
+                            aria-label="Delete todo">
+                        Delete
+                    </button>
+                </div>
+            </div>
+        `;
+    }
 }
 
 customElements.define('todo-item', TodoItem);
