@@ -205,21 +205,20 @@ test('should clear all todos', () => {
     model.clearAll();
     assert.strictEqual(model.todos.length, 0);
 });
-
 test('should save to storage when todo added', () => {
     const storage = new MockStorage();
     const model = new TodoModel(storage);
 
     model.addTodo('Test');
 
-    const saved = storage.load('todos', []);
+    const saved = storage.load('items', []); // Changed from 'todos' to 'items'
     assert.strictEqual(saved.length, 1);
     assert.strictEqual(saved[0].text, 'Test');
 });
 
 test('should load todos from storage', () => {
     const storage = new MockStorage();
-    storage.save('todos', [
+    storage.save('items', [ // Changed from 'todos' to 'items'
         { id: 1, text: 'Saved todo', completed: false }
     ]);
 
